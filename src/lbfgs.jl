@@ -48,8 +48,6 @@ end
 
 LBFGSData(n::I; kwargs...) where {I <: Integer} = LBFGSData(Float64, n; kwargs...)
 
-abstract type AbstractQuasiNewtonOperator{T} <: AbstractLinearOperator{T} end
-
 "A type for limited-memory BFGS approximations."
 mutable struct LBFGSOperator{T, I <: Integer, F, Ft, Fct} <: AbstractQuasiNewtonOperator{T}
   nrow::I
