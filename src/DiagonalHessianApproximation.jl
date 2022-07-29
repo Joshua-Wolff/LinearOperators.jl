@@ -43,7 +43,7 @@ mutable struct DiagonalQN{V::AbstractVector{T}, T <: Real, I <: Integer} <: Abst
 end
 
 # constructor
-DiagonalQN(d::Vector{T}) where {T <: Real} = 
+DiagonalQN(d::AbstractVector{T}) where {T <: Real} = 
   DiagonalQN(
     d,
     length(d),
@@ -113,7 +113,7 @@ mutable struct SpectralGradient{V::AbstractVector{T}, T <: Real, I <: Integer} <
 end
 
 # constructor
-SpectralGradient(d::Vector{T}) where {T <: Real} = 
+SpectralGradient(d::AbstractVector{T}) where {T <: Real} = 
   SpectralGradient(
     d,
     length(d),
@@ -176,7 +176,7 @@ mutable struct DiagonalModifiedSR1{V::AbstractVector{T}, T <: Real, I <: Integer
 end
 
 # constructor
-DiagonalModifiedSR1(d::Vector{T}) where {T <: Real} = 
+DiagonalModifiedSR1(d::AbstractVector{T}) where {T <: Real} = 
   DiagonalModifiedSR1(
     d,
     length(d),
