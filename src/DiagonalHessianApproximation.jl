@@ -79,9 +79,7 @@ function push!(
   sT_B_s = dot(s,B*s)
   q = (sT_y + sT_s - sT_B_s)/trA2
   s2 = s.^2
-  for i in eachindex(s)
-    B.d[i] = B.d[i] + q * s2[i] - 1
-  end
+  B.d .+= q .* s2 .- 1
 end
 
 """
