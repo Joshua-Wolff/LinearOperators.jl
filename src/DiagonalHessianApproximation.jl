@@ -23,7 +23,7 @@ Numer Algor 81, 575–590 (2019).
 https://doi.org/10.1007/s11075-018-0562-7
 """
 # core structure
-mutable struct DiagonalQN{V::AbstractVector{T}, T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
+mutable struct DiagonalQN{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::V # Diagonal of the operator matrix
   nrow::I
   ncol::I
@@ -58,8 +58,8 @@ DiagonalQN(d::AbstractVector{T}) where {T <: Real} =
     0,
     true,
     true,
-    Vector{T}(undef,0),
-    Vector{T}(undef,0),
+    typeof(d)(undef,0),
+    typeof(d)(undef,0),
     true)
 
 # update function
@@ -67,9 +67,9 @@ DiagonalQN(d::AbstractVector{T}) where {T <: Real} =
 # y = ∇f(x_{k+1}) - ∇f(x_k)
 function push!(
   B::DiagonalQN{T,I},
-  s::Vector{T},
-  y::Vector{T},
-  ) where {T <: Real, I <: Integer}
+  s::V,
+  y::V
+  ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
   trA2 = 0
   for i in eachindex(s)
     trA2 += s[i]^4
@@ -93,7 +93,7 @@ https://doi.org/10.18637/jss.v060.i03
 """
 
 # core structure
-mutable struct SpectralGradient{V::AbstractVector{T}, T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
+mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::V # Diagonal of the operator matrix
   nrow::I
   ncol::I
@@ -128,8 +128,8 @@ SpectralGradient(d::AbstractVector{T}) where {T <: Real} =
     0,
     true,
     true,
-    Vector{T}(undef,0),
-    Vector{T}(undef,0),
+    typeof(d)(undef,0),
+    typeof(d)(undef,0),
     true)
 
 # update function
@@ -137,9 +137,9 @@ SpectralGradient(d::AbstractVector{T}) where {T <: Real} =
 # y = ∇f(x_{k+1}) - ∇f(x_k)
 function push!(
   B::SpectralGradient{T,I},
-  s::Vector{T},
-  y::Vector{T}
-  ) where {T <: Real, I <: Integer}
+  s::V,
+  y::V
+  ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
   B.d .= dot(s,y)/dot(s,s) .* ones(length(s)) 
 end
 
@@ -156,7 +156,7 @@ https://doi.org/10.1016/j.cam.2010.10.042.
 """
 
 # core structure
-mutable struct DiagonalModifiedSR1{V::AbstractVector{T}, T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
+mutable struct DiagonalModifiedSR1{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::V # Diagonal of the operator matrix
   nrow::I
   ncol::I
@@ -191,8 +191,8 @@ DiagonalModifiedSR1(d::AbstractVector{T}) where {T <: Real} =
     0,
     true,
     true,
-    Vector{T}(undef,0),
-    Vector{T}(undef,0),
+    typeof(d)(undef,0),
+    typeof(d)(undef,0),
     true)
 
 # update function
@@ -203,12 +203,12 @@ DiagonalModifiedSR1(d::AbstractVector{T}) where {T <: Real} =
 # u ∈ {s,y,∇f(x_k)}
 function push!(
   B::DiagonalModifiedSR1{T,I},
-  s::Vector{T},
-  y::Vector{T},
-  t::Vector{T},
+  s::V,
+  y::V,
+  t::V,
   z::T,
-  u::Vector{T}
-  ) where {T <: Real, I <: Integer}
+  u::V
+  ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
   ψ = 2 * z + dot(t,s)
   yt = y + abs(ψ)/dot(s,u) * u
   delta = yt - B*s
