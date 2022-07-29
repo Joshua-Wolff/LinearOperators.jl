@@ -15,8 +15,13 @@ end
 
 abstract type AbstractDiagonalQuasiNewtonOperator{T} <: AbstractLinearOperator{T} end
 
-############ Andrei 2018
-
+"""
+Implementation a diagonal QN method coming from the following article : 
+Andrei, N. 
+A diagonal quasi-Newton updating method for unconstrained optimization. 
+Numer Algor 81, 575–590 (2019). 
+https://doi.org/10.1007/s11075-018-0562-7
+"""
 # core structure
 mutable struct DiagonalQN{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::Vector{T} # Diagonal of the operator matrix
@@ -79,7 +84,13 @@ function push!(
   end
 end
 
-############ Spectral gradient
+"""
+Implementation a spectral gradient method coming from the following article : 
+Birgin, E. G., Martínez, J. M., & Raydan, M. (2014). 
+Spectral Projected Gradient Methods: Review and Perspectives. 
+Journal of Statistical Software, 60(3), 1–21. 
+https://doi.org/10.18637/jss.v060.i03
+"""
 
 # core structure
 mutable struct SpectralGradient{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
@@ -132,7 +143,17 @@ function push!(
   B.d .= dot(s,y)/dot(s,s) .* ones(length(s)) 
 end
 
-############ Modified Diagonal SR1
+"""
+Implementation a modified SR1 method coming from the following article : 
+Farzin Modarres, Abu Hassan Malik, Wah June Leong,
+Improved Hessian approximation with modified secant equations for symmetric rank-one method,
+Journal of Computational and Applied Mathematics,
+Volume 235, Issue 8,
+2011,
+Pages 2423-2431,
+ISSN 0377-0427,
+https://doi.org/10.1016/j.cam.2010.10.042.
+"""
 
 # core structure
 mutable struct DiagonalModifiedSR1{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
