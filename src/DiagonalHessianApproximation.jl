@@ -23,8 +23,8 @@ Numer Algor 81, 575–590 (2019).
 https://doi.org/10.1007/s11075-018-0562-7
 """
 # core structure
-mutable struct DiagonalQN{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::Vector{T} # Diagonal of the operator matrix
+mutable struct DiagonalQN{V::AbstractVector{T}, T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
+  d::V # Diagonal of the operator matrix
   nrow::I
   ncol::I
   symmetric::Bool
@@ -37,8 +37,8 @@ mutable struct DiagonalQN{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewto
   nctprod::I
   args5::Bool
   use_prod5!::Bool # true for 5-args mul! and for composite operators created with operators that use the 3-args mul!
-  Mv5::Vector{T}
-  Mtu5::Vector{T}
+  Mv5::V
+  Mtu5::V
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
@@ -93,8 +93,8 @@ https://doi.org/10.18637/jss.v060.i03
 """
 
 # core structure
-mutable struct SpectralGradient{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::Vector{T} # Diagonal of the operator matrix
+mutable struct SpectralGradient{V::AbstractVector{T}, T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
+  d::V # Diagonal of the operator matrix
   nrow::I
   ncol::I
   symmetric::Bool
@@ -107,8 +107,8 @@ mutable struct SpectralGradient{T <: Real, I <: Integer} <: AbstractDiagonalQuas
   nctprod::I
   args5::Bool
   use_prod5!::Bool # true for 5-args mul! and for composite operators created with operators that use the 3-args mul!
-  Mv5::Vector{T}
-  Mtu5::Vector{T}
+  Mv5::V
+  Mtu5::V
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
@@ -156,8 +156,8 @@ https://doi.org/10.1016/j.cam.2010.10.042.
 """
 
 # core structure
-mutable struct DiagonalModifiedSR1{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::Vector{T} # Diagonal of the operator matrix
+mutable struct DiagonalModifiedSR1{V::AbstractVector{T}, T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
+  d::V # Diagonal of the operator matrix
   nrow::I
   ncol::I
   symmetric::Bool
@@ -170,8 +170,8 @@ mutable struct DiagonalModifiedSR1{T <: Real, I <: Integer} <: AbstractDiagonalQ
   nctprod::I
   args5::Bool
   use_prod5!::Bool # true for 5-args mul! and for composite operators created with operators that use the 3-args mul!
-  Mv5::Vector{T}
-  Mtu5::Vector{T}
+  Mv5::V
+  Mtu5::V
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
