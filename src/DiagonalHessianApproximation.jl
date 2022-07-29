@@ -76,10 +76,10 @@ function push!(
   end
   sT_s = dot(s,s)
   sT_y = dot(s,y)
-  sT_B_s = dot(s,B*s)
+  Bs = B*s
+  sT_B_s = dot(s,Bs)
   q = (sT_y + sT_s - sT_B_s)/trA2
-  s2 = s.^2
-  B.d .+= q .* s2 .- 1
+  B.d .+= q .* s.^2 .- 1
 end
 
 """
@@ -208,9 +208,10 @@ function push!(
   u::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
   ψ = 2 * z + dot(t,s)
-  yt = y + abs(ψ)/dot(s,u) * u
-  delta = yt - B*s
-  for i in 1:length(s)
-    B.d[i] = B.d[i] + dot(delta,delta)/dot(delta,s)
-  end 
+  yt = copy(y)
+  yt .+= abs(ψ)/dot(s,u) .* u
+  Bs = B*s
+  yt .-= Bs
+  σ = dot(yt,yt)/dot(yt,s)
+  B.d .+= σ
 end
