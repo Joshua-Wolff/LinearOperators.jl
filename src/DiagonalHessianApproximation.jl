@@ -66,7 +66,7 @@ DiagonalQN(d::AbstractVector{T}) where {T <: Real} =
 # s = x_{k+1} - x_k
 # y = ∇f(x_{k+1}) - ∇f(x_k)
 function push!(
-  B::DiagonalQN{T,I},
+  B::DiagonalQN{T,I,V},
   s::V,
   y::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
@@ -92,7 +92,7 @@ https://doi.org/10.18637/jss.v060.i03
 
 # core structure
 mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::V # Diagonal of the operator matrix
+  d::T # Diagonal coefficient of the operator matrix (multiple of identity)
   nrow::I
   ncol::I
   symmetric::Bool
@@ -111,34 +111,34 @@ mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}}
 end
 
 # constructor
-SpectralGradient(d::AbstractVector{T}) where {T <: Real} = 
+SpectralGradient(d::T, n::I) where {T <: Real, I <: Integer} = 
   SpectralGradient(
     d,
-    length(d),
-    length(d),
+    n,
+    n,
     true, 
     true,  
-    (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β), 
-    (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β), 
-    (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β), 
+    (res, v, α, β) -> mulSquareOpDiagonal!(res, d*ones(n), v, α, β), 
+    (res, v, α, β) -> mulSquareOpDiagonal!(res, d*ones(n), v, α, β), 
+    (res, v, α, β) -> mulSquareOpDiagonal!(res, d*ones(n), v, α, β), 
     0,
     0,
     0,
     true,
     true,
-    typeof(d)(undef,0),
-    typeof(d)(undef,0),
+    typeof(d*ones(n))(undef,0),
+    typeof(d*ones(n))(undef,0),
     true)
 
 # update function
 # s = x_{k+1} - x_k
 # y = ∇f(x_{k+1}) - ∇f(x_k)
 function push!(
-  B::SpectralGradient{T,I},
+  B::SpectralGradient{T,I,V},
   s::V,
   y::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
-  B.d .= dot(s,y)/dot(s,s) .* ones(length(s)) 
+  B.d = dot(s,y)/dot(s,s)
 end
 
 """
@@ -200,7 +200,7 @@ DiagonalModifiedSR1(d::AbstractVector{T}) where {T <: Real} =
 # z = f(x_k) - f(x_{k+1})
 # u ∈ {s,y,∇f(x_k)}
 function push!(
-  B::DiagonalModifiedSR1{T,I},
+  B::DiagonalModifiedSR1{T,I,V},
   s::V,
   y::V,
   t::V,
