@@ -1,8 +1,6 @@
 using LinearAlgebra
 using LinearOperators
 
-############ function to define products
-
 function mulSquareOpDiagonal!(res, d, v, α, β::T) where {T <: Real}
   if β == zero(T)
     res .= α .* d .* v
@@ -11,20 +9,19 @@ function mulSquareOpDiagonal!(res, d, v, α, β::T) where {T <: Real}
   end
 end
 
-############ Abstract type
-
 abstract type AbstractDiagonalQuasiNewtonOperator{T} <: AbstractLinearOperator{T} end
 
 """
-Implementation a diagonal QN method coming from the following article : 
+Implementation of the diagonal quasi-Newton approximation described in
+
 Andrei, N. 
 A diagonal quasi-Newton updating method for unconstrained optimization. 
-Numer Algor 81, 575–590 (2019). 
 https://doi.org/10.1007/s11075-018-0562-7
 """
-# core structure
+
 mutable struct DiagonalQN{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::V # Diagonal of the operator matrix
+  d::V # Diagonal of the operator
+  Bs::V # Preallocate a vector used in push! function
   nrow::I
   ncol::I
   symmetric::Bool
@@ -42,9 +39,9 @@ mutable struct DiagonalQN{T <: Real, I <: Integer, V <: AbstractVector{T}} <: Ab
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
-# constructor
 DiagonalQN(d::AbstractVector{T}) where {T <: Real} = 
   DiagonalQN(
+    d,
     d,
     length(d),
     length(d),
@@ -76,23 +73,25 @@ function push!(
   end
   sT_s = dot(s,s)
   sT_y = dot(s,y)
-  Bs = B*s
-  sT_B_s = dot(s,Bs)
+  B.Bs .= B*s
+  sT_B_s = dot(s,B.Bs)
+  if trA2 == 0
+    error("Cannot divide by zero and trA2 = 0")
+  end
   q = (sT_y + sT_s - sT_B_s)/trA2
   B.d .+= q .* s.^2 .- 1
 end
 
 """
-Implementation a spectral gradient method coming from the following article : 
-Birgin, E. G., Martínez, J. M., & Raydan, M. (2014). 
+Implementation of a spectral gradient quasi-Newton approximation described in
+
+Birgin, E. G., Martínez, J. M., & Raydan, M. 
 Spectral Projected Gradient Methods: Review and Perspectives. 
-Journal of Statistical Software, 60(3), 1–21. 
 https://doi.org/10.18637/jss.v060.i03
 """
 
-# core structure
 mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::T # Diagonal coefficient of the operator matrix (multiple of identity)
+  d::T # Diagonal coefficient of the operator (multiple of the identity)
   nrow::I
   ncol::I
   symmetric::Bool
@@ -110,24 +109,23 @@ mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}}
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
-# constructor
-SpectralGradient(d::T, n::I) where {T <: Real, I <: Integer} = 
+SpectralGradient(d::T, n::I, V) where {T <: Real, I <: Integer} = 
   SpectralGradient(
     d,
     n,
     n,
     true, 
     true,  
-    (res, v, α, β) -> mulSquareOpDiagonal!(res, d*ones(n), v, α, β), 
-    (res, v, α, β) -> mulSquareOpDiagonal!(res, d*ones(n), v, α, β), 
-    (res, v, α, β) -> mulSquareOpDiagonal!(res, d*ones(n), v, α, β), 
+    (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β), 
+    (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β), 
+    (res, v, α, β) -> mulSquareOpDiagonal!(res, d, v, α, β), 
     0,
     0,
     0,
     true,
     true,
-    typeof(d*ones(n))(undef,0),
-    typeof(d*ones(n))(undef,0),
+    V(undef,0),
+    V(undef,0),
     true)
 
 # update function
@@ -138,24 +136,24 @@ function push!(
   s::V,
   y::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
+  if s .== 0
+    error("Cannot divide by zero and s .= 0")
+  end
   B.d = dot(s,y)/dot(s,s)
 end
 
 """
-Implementation a modified SR1 method coming from the following article : 
+Implementation of a modified SR1 method described in
+
 Farzin Modarres, Abu Hassan Malik, Wah June Leong,
-Improved Hessian approximation with modified secant equations for symmetric rank-one method,
-Journal of Computational and Applied Mathematics,
-Volume 235, Issue 8,
-2011,
-Pages 2423-2431,
-ISSN 0377-0427,
+Improved Hessian approximation with modified secant equations for symmetric rank-one method.
 https://doi.org/10.1016/j.cam.2010.10.042.
 """
 
-# core structure
 mutable struct DiagonalModifiedSR1{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
-  d::V # Diagonal of the operator matrix
+  d::V # Diagonal of the operator
+  yt::V # Preallocate a vector used in push! function
+  Bs::V # Preallocate a vector used in push! function
   nrow::I
   ncol::I
   symmetric::Bool
@@ -173,9 +171,10 @@ mutable struct DiagonalModifiedSR1{T <: Real, I <: Integer, V <: AbstractVector{
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
-# constructor
 DiagonalModifiedSR1(d::AbstractVector{T}) where {T <: Real} = 
   DiagonalModifiedSR1(
+    d,
+    d,
     d,
     length(d),
     length(d),
@@ -208,10 +207,16 @@ function push!(
   u::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
   ψ = 2 * z + dot(t,s)
-  yt = copy(y)
-  yt .+= abs(ψ)/dot(s,u) .* u
-  Bs = B*s
-  yt .-= Bs
-  σ = dot(yt,yt)/dot(yt,s)
+  B.Bs .= B*s
+  sTu = dot(s,u)
+  if sTu == 0
+    error("Cannot divide by zero and dot(s,u) = 0")
+  end
+  B.yt .= y .+ abs(ψ)/dot(s,u) .* u .- B.Bs
+  ytTs = dot(B.yt,s)
+  if ytTs == 0
+    error("Cannot divide by zero and dot(yt,s) = 0")
+  end
+  σ = dot(B.yt,B.yt)/dot(B.yt,s)
   B.d .+= σ
 end
