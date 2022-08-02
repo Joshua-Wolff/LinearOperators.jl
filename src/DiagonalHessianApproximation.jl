@@ -67,19 +67,20 @@ function push!(
   s::V,
   y::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}
-  trA2 = 0
+  trA2 = zero(T)
   for i in eachindex(s)
     trA2 += s[i]^4
   end
   sT_s = dot(s,s)
   sT_y = dot(s,y)
-  B.Bs .= B*s
+  mul!(B.Bs,B,s)
   sT_B_s = dot(s,B.Bs)
   if trA2 == 0
     error("Cannot divide by zero and trA2 = 0")
   end
   q = (sT_y + sT_s - sT_B_s)/trA2
   B.d .+= q .* s.^2 .- 1
+  return B
 end
 
 """
@@ -140,4 +141,5 @@ function push!(
     error("Cannot divide by zero and s .= 0")
   end
   B.d = dot(s,y)/dot(s,s)
+  return B
 end
