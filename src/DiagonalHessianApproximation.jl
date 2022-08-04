@@ -21,7 +21,6 @@ https://doi.org/10.1007/s11075-018-0562-7
 
 mutable struct DiagonalQN{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::V # Diagonal of the operator
-  Bs::V # Preallocate a vector used in push! function
   nrow::I
   ncol::I
   symmetric::Bool
@@ -34,14 +33,11 @@ mutable struct DiagonalQN{T <: Real, I <: Integer, V <: AbstractVector{T}} <: Ab
   nctprod::I
   args5::Bool
   use_prod5!::Bool # true for 5-args mul! and for composite operators created with operators that use the 3-args mul!
-  Mv5::V
-  Mtu5::V
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
 DiagonalQN(d::AbstractVector{T}) where {T <: Real} = 
   DiagonalQN(
-    d,
     d,
     length(d),
     length(d),
@@ -55,8 +51,6 @@ DiagonalQN(d::AbstractVector{T}) where {T <: Real} =
     0,
     true,
     true,
-    typeof(d)(undef,0),
-    typeof(d)(undef,0),
     true)
 
 # update function
@@ -73,8 +67,7 @@ function push!(
   end
   sT_s = dot(s,s)
   sT_y = dot(s,y)
-  mul!(B.Bs,B,s)
-  sT_B_s = dot(s,B.Bs)
+  sT_B_s = sum(s[i]^2 * B.d[i] for i ∈ eachindex(s))
   if trA2 == 0
     error("Cannot divide by zero and trA2 = 0")
   end
@@ -91,7 +84,7 @@ Spectral Projected Gradient Methods: Review and Perspectives.
 https://doi.org/10.18637/jss.v060.i03
 """
 
-mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
+mutable struct SpectralGradient{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::T # Diagonal coefficient of the operator (multiple of the identity)
   nrow::I
   ncol::I
@@ -105,12 +98,10 @@ mutable struct SpectralGradient{T <: Real, I <: Integer, V <: AbstractVector{T}}
   nctprod::I
   args5::Bool
   use_prod5!::Bool # true for 5-args mul! and for composite operators created with operators that use the 3-args mul!
-  Mv5::V
-  Mtu5::V
   allocated5::Bool # true for 5-args mul!, false for 3-args mul! until the vectors are allocated
 end
 
-SpectralGradient(d::T, n::I, V) where {T <: Real, I <: Integer} = 
+SpectralGradient(d::T, n::I) where {T <: Real, I <: Integer} = 
   SpectralGradient(
     d,
     n,
@@ -125,15 +116,13 @@ SpectralGradient(d::T, n::I, V) where {T <: Real, I <: Integer} =
     0,
     true,
     true,
-    V(undef,0),
-    V(undef,0),
     true)
 
 # update function
 # s = x_{k+1} - x_k
 # y = ∇f(x_{k+1}) - ∇f(x_k)
 function push!(
-  B::SpectralGradient{T,I,V},
+  B::SpectralGradient{T,I},
   s::V,
   y::V
   ) where {T <: Real, I <: Integer, V <: AbstractVector{T}}

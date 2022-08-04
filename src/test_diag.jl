@@ -38,7 +38,7 @@ end
             push!(B,s,y)
             @test norm(B.d - Bref) <= 1e-10
 
-            B = SpectralGradient(1.0,3,Vector{Float64})
+            B = SpectralGradient(1.0,3)
             if "$Func" == "f"
                   Bref = 2
             elseif "$Func" == "g"
