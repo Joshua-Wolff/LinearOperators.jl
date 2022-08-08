@@ -18,7 +18,6 @@ Andrei, N.
 A diagonal quasi-Newton updating method for unconstrained optimization. 
 https://doi.org/10.1007/s11075-018-0562-7
 """
-
 mutable struct DiagonalQN{T <: Real, I <: Integer, V <: AbstractVector{T}} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::V # Diagonal of the operator
   nrow::I
@@ -83,7 +82,6 @@ Birgin, E. G., Martínez, J. M., & Raydan, M.
 Spectral Projected Gradient Methods: Review and Perspectives. 
 https://doi.org/10.18637/jss.v060.i03
 """
-
 mutable struct SpectralGradient{T <: Real, I <: Integer} <: AbstractDiagonalQuasiNewtonOperator{T} 
   d::T # Diagonal coefficient of the operator (multiple of the identity)
   nrow::I
