@@ -1,6 +1,4 @@
 using ForwardDiff
-using Test
-include("DiagonalHessianApproximation.jl")
 
 # Points
 x0 = [-1.0,1.0,-1.0]
